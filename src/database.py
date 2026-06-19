@@ -7,7 +7,9 @@ DB_FILE = "seen_jobs.json"
 def load_seen_ids() -> set:
     if os.path.exists(DB_FILE):
         with open(DB_FILE, "r", encoding="utf-8") as f:
-            return set(json.load(f))
+            content = f.read().strip()
+            if content:
+                return set(json.loads(content))
     return set()
 
 

@@ -109,12 +109,35 @@ def _send_embeds(webhook_url: str, jobs: list):
         _post(webhook_url, {"embeds": batch})
 
 
+def _get_webhook_urls() -> list:
+    """Collect all configured webhook URLs (DISCORD_WEBHOOK_URL, DISCORD_WEBHOOK_URL_2, ...)."""
+    urls = []
+    primary = os.environ.get("DISCORD_WEBHOOK_URL")
+    if primary:
+        urls.append(primary)
+
+    i = 2
+    while True:
+        extra = os.environ.get(f"DISCORD_WEBHOOK_URL_{i}")
+        if not extra:
+            break
+        urls.append(extra)
+        i += 1
+
+    return urls
+
+
 def send_discord(jobs: list):
-    webhook_url = os.environ.get("DISCORD_WEBHOOK_URL")
-    if not webhook_url:
-        print("[Discord] No DISCORD_WEBHOOK_URL — skipping")
+    webhook_urls = _get_webhook_urls()
+    if not webhook_urls:
+        print("[Discord] No DISCORD_WEBHOOK_URL set — skipping")
         return
 
+    for webhook_url in webhook_urls:
+        _send_to_webhook(webhook_url, jobs)
+
+
+def _send_to_webhook(webhook_url: str, jobs: list):
     now = datetime.now()
     date_str = now.strftime("%A %d %B %Y").capitalize()  # e.g. "Jeudi 19 Juin 2026"
     divider = "══════════════════════════════"
